@@ -1,0 +1,29 @@
+#!/bin/bash
+
+# xour
+# runs the windows version of xournal++ if on an NTFS drive, else, runs the crummy linux version that's not good on wsl
+
+WINXOPP="/mnt/d/Xournal/bin/xournalpp.exe"
+WINCMDXOPP="/mnt/c/Windows/System32/cmd.exe /C  $(wslpath -w $WINXOPP) "
+# echo $(pwd)
+# echo $#
+if [[ "$#" -gt 1  ]]; then
+    >&2 echo "xour [Optional: One File Argument]"
+    >&2 echo "Opens file with the windows or Linux version of Xournal++ depending on the drive."
+    exit 1
+fi
+if [[ $(wslpath -w "$(realpath $@)")  == *"wsl.localhost"* ]]; then
+    # linux path
+    command xournalpp "$@" &
+else
+    # I HATE WINDOWS STRING MANIPULATION
+# THIS HAS MORE QUOTES THAN LISP HAS PARANTHESES
+    declare -a vars=()
+    for var in "$@"; do
+        #echo var
+        #echo "$var"
+      vars+=("$(wslpath -w "${var}")")
+    done
+   # echo $vars
+    $WINCMDXOPP "${vars[@]}" &
+fi
